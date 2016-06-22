@@ -1,0 +1,82 @@
+﻿@section Scripts {
+    @Scripts.Render("~/bundles/jquery")
+}
+
+<div>
+    <h1><span id="portfolioName" class="label label-primary"></span></h1>
+
+    <table id="securityDataTable" class="table table-bordered table-responsive table-striped">
+        <tr>
+            <th>Symbol</th>
+            <th>Type</th>
+            <th>Quantity</th>
+        </tr>
+    </table>
+
+</div>
+<div>
+    <h2>Search by Symbol</h2>
+    <input type="text" class="glyphicon glyphicon-search" id="securitySym" size="5" />
+    <input type="button" value="Search" onclick="find();" />
+    <p id="product" />
+</div>
+
+<script>
+    var tokenKey = 'accessToken';
+    var pathArray = location.href.split('/');
+    var protocol = pathArray[0];
+    var host = pathArray[2];
+    var url = protocol + '//' + host + '/api/portfolio';
+
+    $(document).ready(function () {
+        // Send an AJAX request
+        var token = sessionStorage.getItem(tokenKey);
+        var headers = {};
+        var securities;
+
+        if (token) {
+            headers.Authorization = 'Bearer ' + token;
+        }
+
+        $.ajax({
+            type: 'GET',
+            url: url,
+            headers: headers
+        }).done(function (data) {
+            $("span[id='portfolioName']").html(data[0].name);
+            drawTable(data[0].securities);
+        })
+        .fail(function (jqXHR) {
+            console.log(jqXHR.status + ': ' + jqXHR.statusText);
+        });
+    });
+
+    function formatItem(item) {
+      return item.Name + ': $' + item.Price;
+    }
+
+    function find() {
+      var id = $('#securitySym').val();
+      $.getJSON(uri + '/' + id)
+          .done(function (data) {
+            $('#product').text(formatItem(data));
+          })
+          .fail(function (jqXHR, textStatus, err) {
+            $('#product').text('Error: ' + err);
+          });
+    }
+
+    function drawTable(data) {
+        for (var i = 0; i < data.length; i++) {
+            drawRow(data[i]);
+        }
+    }
+
+    function drawRow(rowData) {
+        var row = $("<tr />")
+        $("#securityDataTable").append(row);
+        row.append($("<td>" + rowData.symbol + "</td>"));
+        row.append($("<td>" + rowData.type + "</td>"));
+        row.append($("<td>" + rowData.quantity + "</td>"));
+    }
+</script>
