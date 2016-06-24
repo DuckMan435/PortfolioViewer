@@ -15,3 +15,14 @@ select,
 textarea {
     max-width: 280px;
 }
+
+#spinner {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -50px;
+    margin-top: -50px;
+    background: url(~/Content/img/ajax-loader.gif);
+    background-size: 100%;
+}

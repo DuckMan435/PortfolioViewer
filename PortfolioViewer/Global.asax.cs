@@ -15,8 +15,8 @@ namespace PortfolioViewer
     {
         protected void Application_Start()
         {
-            Database.SetInitializer(
-                new PortfolioViewerContextInitializer());
+            Database.SetInitializer(new PortfolioViewerContextInitializer());
+            Database.SetInitializer(new ApplicationDbInitializer());
             AreaRegistration.RegisterAllAreas();
             GlobalConfiguration.Configure(WebApiConfig.Register);
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
