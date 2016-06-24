@@ -8,7 +8,6 @@ using System.Web.Http;
 
 namespace PortfolioViewer.Controllers
 {
-    [Authorize]
     public class PortfolioController : ApiController
     {
         private IRepository _repo;
@@ -20,7 +19,10 @@ namespace PortfolioViewer.Controllers
 
         public IQueryable<PortfolioModel> Get()
         {
-            return _repo.GetAllPortfoliosWithSecurities().Where(o => o.UserName == this.RequestContext.Principal.Identity.Name);
+            if (string.IsNullOrEmpty(this.RequestContext.Principal.Identity.Name))
+                return _repo.GetAllPortfoliosWithSecurities();
+            else
+                return _repo.GetAllPortfoliosWithSecurities().Where(o => o.UserName == this.RequestContext.Principal.Identity.Name);
         }
     }
 }
