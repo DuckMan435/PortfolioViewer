@@ -16,11 +16,13 @@ using Microsoft.Owin.Security.OAuth;
 using PortfolioViewer.Models;
 using PortfolioViewer.Providers;
 using PortfolioViewer.Results;
+using System.Web.Http.Description;
 
 namespace PortfolioViewer.Controllers
 {
     [Authorize]
     [RoutePrefix("api/Account")]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class AccountController : ApiController
     {
         private const string LocalLoginProvider = "Local";

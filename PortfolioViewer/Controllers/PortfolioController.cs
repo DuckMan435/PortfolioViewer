@@ -17,8 +17,14 @@ namespace PortfolioViewer.Controllers
             _repo = repo;
         }
 
+        /// <summary>
+        /// Returns a list of portfolios and their securities
+        /// </summary>
+        /// <returns></returns>
         public IQueryable<PortfolioModel> Get()
         {
+            // Originally had Authorize tag, but it needed to be exposed as a separate call outside of the interface for the sake of this exercise
+
             if (string.IsNullOrEmpty(this.RequestContext.Principal.Identity.Name))
                 return _repo.GetAllPortfoliosWithSecurities();
             else
