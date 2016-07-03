@@ -9,39 +9,10 @@ namespace PortfolioViewer.Models
     {
         public int Id { get; set; }
 
-        public string Symbol { get; set; }
-
-        public string Name { get; set; }
-
         [JsonConverter(typeof(StringEnumConverter))]
         public SecurityType Type { get; set; }
 
-        public int Quantity { get; set; }
-
-        public double PurchasePrice { get; set; }
-
-        public double FundDividend { get; set; }
-
         public DateTime? PurchaseDate { get; set; }
-
-        public DateTime? MaturityDate { get; set; }
-
-        public double FaceValue { get; set; }
-
-        public double BondInterestRate { get; set; }
-
-        public double NumberOfPeriods
-        {
-            get
-            {
-                if (PurchaseDate != null && MaturityDate != null)
-                    return MaturityDate.Value.Year - PurchaseDate.Value.Year;
-
-                return 0;
-            }
-        }
-
-        public double MarketInterestRate { get; set; }
     }
 
     public enum SecurityType
