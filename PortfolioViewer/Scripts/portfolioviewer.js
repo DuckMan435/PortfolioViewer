@@ -7,12 +7,6 @@
 
 function loadIndexPage() {
     var tokenKey = 'accessToken';
-    var pathArray = location.href.split('/');
-    var protocol = pathArray[0];
-    var host = pathArray[2];
-    var url = protocol + '//' + host + '/api/portfolio';
-
-    var tokenKey = 'accessToken';
     var token = sessionStorage.getItem(tokenKey);
 
     $('#spinner').show();
@@ -41,7 +35,7 @@ function loadPortfolio() {
     var pathArray = location.href.split('/');
     var protocol = pathArray[0];
     var host = pathArray[2];
-    var url = protocol + '//' + host + '/api/portfolio';
+    var url = protocol + '//' + host + '/api/portfolios';
     var token = sessionStorage.getItem(tokenKey);
     var headers = {};
     var securities;
@@ -142,12 +136,12 @@ function drawStockFundRow(rowData) {
         else if (rowData.fundDividend)
             dividendYield = rowData.fundDividend;
 
-        if (rowData.type == "Stock") {
-            gain = calculateStockValue(rowData.quantity, lastTradePriceOnly, dividendYield) - (parseFloat(purchasePrice) * parseFloat(rowData.quantity));
+        if (rowData.type === "Stock") {
+            gain = calculateCurrentStockGain(rowData.quantity, lastTradePriceOnly, dividendYield) - (parseFloat(purchasePrice) * parseFloat(rowData.quantity));
             gainPct = gain / (parseFloat(purchasePrice) * parseFloat(rowData.quantity));
         }
-        else if (rowData.type == "Fund") {
-            gain = calculateFundValue(rowData.quantity, lastTradePriceOnly, dividendYield) - (parseFloat(purchasePrice) * parseFloat(rowData.quantity));
+        else if (rowData.type === "Fund") {
+            gain = calculateCurrentFundGain(rowData.quantity, lastTradePriceOnly, dividendYield) - (parseFloat(purchasePrice) * parseFloat(rowData.quantity));
             gainPct = gain / (parseFloat(purchasePrice) * parseFloat(rowData.quantity));
         }
 
@@ -194,7 +188,7 @@ function drawBondRow(rowData)
     row.append($("<td>" + formatDateMMDDYYYY(rowData.maturityDate) + "</td>")); // Maturity Date
     row.append($("<td>" + rowData.numberOfPeriods + "</td>")); // Years to Maturity
     row.append($("<td>" + formatToPercent(rowData.marketInterestRate, 2) + "</td>")); // Required Return
-    row.append($("<td>" + formatToUSCurrency(calculateBondValue(rowData.faceValue, rowData.bondInterestRate, rowData.marketInterestRate, rowData.numberOfPeriods), 0) + "</td>")); // Bond Price
+    row.append($("<td>" + formatToUSCurrency(calculateCurrentBondPrice(rowData.faceValue, rowData.bondInterestRate, rowData.marketInterestRate, rowData.numberOfPeriods), 0) + "</td>")); // Bond Price
 }
 
 function drawSecDetailRow(rowData) {
@@ -214,37 +208,100 @@ function drawSecDetailRow(rowData) {
     row.append($("<td>" + formatToUSCurrency(parseFloat(rowData.YearHigh), 2) + "</td>"));
 }
 
-function calculateStockValue(quantity, currentPrice, stockDividend) {
+function calculateCurrentStockGain(quantity, currentPrice, stockDividend) {
+    var pathArray = location.href.split('/');
+    var protocol = pathArray[0];
+    var host = pathArray[2];
+    var url = protocol + '//' + host + '/api/func?quantity=' + quantity + '&currentPrice=' + currentPrice + '&stockDividend=' + stockDividend;
+    var stockValue;
 
-    var stockValue = (quantity * currentPrice) + ((stockDividend / currentPrice) * quantity);
+    $.ajax({
+        type: 'GET',
+        url: url,
+        async: false
+    }).done(function (data) {
+        stockValue = data;
+    })
+    .fail(function (jqXHR) {
+        console.log(jqXHR.status + ': ' + jqXHR.statusText);
+    });
 
     return stockValue;
 }
 
-function calculateFundValue(quantity, currentPrice, fundDividend) {
+function calculateCurrentFundGain(quantity, currentPrice, fundDividend) {
+    var pathArray = location.href.split('/');
+    var protocol = pathArray[0];
+    var host = pathArray[2];
+    var url = protocol + '//' + host + '/api/func?quantity=' + quantity + '&currentPrice=' + currentPrice + '&fundDividend=' + fundDividend;
+    var fundValue;
 
-    var fundValue = (quantity * currentPrice) + ((fundDividend / currentPrice) * 4 * quantity);
+    $.ajax({
+        type: 'GET',
+        url: url,
+        async: false
+    }).done(function (data) {
+        fundValue = data;
+    })
+    .fail(function (jqXHR) {
+        console.log(jqXHR.status + ': ' + jqXHR.statusText);
+    });
 
     return fundValue;
 }
 
-function calculateBondValue(faceValue, bondInterestRate, marketInterestRate, numberOfPeriods) {
+function calculateCurrentBondPrice(faceValue, bondInterestRate, marketInterestRate, numberOfPeriods) {
+    var pathArray = location.href.split('/');
+    var protocol = pathArray[0];
+    var host = pathArray[2];
+    var url = protocol + '//' + host + '/api/func?faceValue=' + faceValue + '&bondInterestRate=' + bondInterestRate + '&marketInterestRate=' + marketInterestRate + '&numberOfPeriods=' + numberOfPeriods;
+    var headers = {};
+    var bondValue;
 
-    var redemptionValue = faceValue / Math.pow(1 + marketInterestRate, numberOfPeriods);
-    var interestPaymentValue = bondInterestRate * faceValue * ((1 - Math.pow((1 + marketInterestRate), -numberOfPeriods)) / marketInterestRate);
+    $.ajax({
+        type: 'GET',
+        url: url,
+        async: false
+    }).done(function (data) {
+        bondValue = data;
+    })
+    .fail(function (jqXHR) {
+        console.log(jqXHR.status + ': ' + jqXHR.statusText);
+    });
 
-    return redemptionValue + interestPaymentValue;
+    return bondValue;
 }
 
 function calculateTotalPortfolioValue(data) {
     var marketValue = 0;
     var bondPrice = 0;
+
     for (var i = 0; i < data.length; i++) {
         if (data[i].symbol) {
-            marketValue += loadSecurityBySymbol("'" + data[i].symbol + "'").LastTradePriceOnly * data[i].quantity;
+            var quote = loadSecurityBySymbol("'" + data[i].symbol + "'");
+            var purchasePrice = 0;
+            var lastTradePriceOnly = 0;
+            var dividendYield = 0;
+            var gain = 0;
+
+            purchasePrice = data[i].purchasePrice;
+            lastTradePriceOnly = quote.LastTradePriceOnly;
+            if (quote.DividendYield)
+                dividendYield = quote.DividendYield;
+            else if (data[i].fundDividend)
+                dividendYield = data[i].fundDividend;
+
+            if (data[i].type === "Stock") {
+                gain = calculateCurrentStockGain(data[i].quantity, lastTradePriceOnly, dividendYield) - (parseFloat(purchasePrice) * parseFloat(data[i].quantity));
+            }
+            else if (data[i].type === "Fund") {
+                gain = calculateCurrentFundGain(data[i].quantity, lastTradePriceOnly, dividendYield) - (parseFloat(purchasePrice) * parseFloat(data[i].quantity));
+            }
+
+            marketValue += (parseFloat(purchasePrice) * parseFloat(data[i].quantity)) + gain;
         }
         else {
-            bondPrice += calculateBondValue(data[i].faceValue, data[i].bondInterestRate, data[i].marketInterestRate, data[i].numberOfPeriods)
+            bondPrice += calculateCurrentBondPrice(data[i].faceValue, data[i].bondInterestRate, data[i].marketInterestRate, data[i].numberOfPeriods)
         }
     }
 

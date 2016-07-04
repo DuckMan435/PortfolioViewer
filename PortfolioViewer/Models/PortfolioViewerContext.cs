@@ -24,6 +24,6 @@ namespace PortfolioViewer.Models
         }
 
         public DbSet<SecurityModel> Securities { get; set; }
-        public DbSet<PortfolioModel> Portfolios { get; set; }
+        public virtual DbSet<PortfolioModel> Portfolios { get; set; }
     }
 }

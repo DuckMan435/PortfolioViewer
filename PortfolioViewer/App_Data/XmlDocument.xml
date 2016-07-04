@@ -503,7 +503,35 @@
             </summary>
             <param name="documentPath">The physical path to XML document.</param>
         </member>
-        <member name="M:PortfolioViewer.Controllers.PortfolioController.Get">
+        <member name="M:PortfolioViewer.Controllers.FuncController.CalculateCurrentStockGain(System.Int32,System.Double,System.Double)">
+            <summary>
+            Calculates Current Stock Gain
+            </summary>
+            <param name="quantity"></param>
+            <param name="currentPrice"></param>
+            <param name="stockDividend"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PortfolioViewer.Controllers.FuncController.CalculateCurrentFundGain(System.Int32,System.Double,System.Double)">
+            <summary>
+            Calculates Current Fund Gain
+            </summary>
+            <param name="quantity"></param>
+            <param name="currentPrice"></param>
+            <param name="fundDividend"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PortfolioViewer.Controllers.FuncController.CalculateCurrentBondPrice(System.Double,System.Double,System.Double,System.Double)">
+            <summary>
+            Calculates Current Bond Price
+            </summary>
+            <param name="faceValue"></param>
+            <param name="bondInterestRate"></param>
+            <param name="marketInterestRate"></param>
+            <param name="numberOfPeriods"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PortfolioViewer.Controllers.PortfoliosController.Get">
             <summary>
             Returns a list of portfolios and their securities
             </summary>
