@@ -13,7 +13,7 @@ function loadIndexPage() {
 
     setTimeout(function () {
 
-        if (token) {
+        if (token && token != "undefined") {
             $("#divLogin").hide();
             $("#logoutLink").show();
             $("#divPortfolio").show();

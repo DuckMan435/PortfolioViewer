@@ -27,6 +27,9 @@
             password: self.loginPassword()
         };
 
+        if (!self.userName || !self.loginPassword)
+            return;
+
         $.ajax({
             type: 'POST',
             url: '/Token',
@@ -35,7 +38,8 @@
             self.user(data.userName);
             // Cache the access token in session storage.
             sessionStorage.setItem(tokenKey, data.access_token);
-            window.location.href = "";            
+            if (data.access_token)
+                window.location.href = "";
         }).fail(showError);
     }
 
