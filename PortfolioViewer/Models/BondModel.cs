@@ -4,8 +4,6 @@ namespace PortfolioViewer.Models
 {
     public class BondModel : SecurityModel
     {
-        public string Name { get; set; }
-
         public DateTime? MaturityDate { get; set; }
 
         public double FaceValue { get; set; }
@@ -24,5 +22,24 @@ namespace PortfolioViewer.Models
         }
 
         public double MarketInterestRate { get; set; }
+
+        public double CurrentBondPrice
+        {
+            get
+            {
+                var redemptionValue = FaceValue / Math.Pow(1 + MarketInterestRate, NumberOfPeriods);
+                var interestPaymentValue = BondInterestRate * FaceValue * ((1 - Math.Pow((1 + MarketInterestRate), -NumberOfPeriods)) / MarketInterestRate);
+
+                return redemptionValue + interestPaymentValue;
+            }
+        }
+
+        public override string SecurityType
+        {
+            get
+            {
+                return "Bond";
+            }
+        }
     }
 }

@@ -51,7 +51,7 @@ function loadPortfolio() {
         }).done(function (data) {
             $("span[id='portfolioName']").html(data[0].name + " Portfolio");
             drawPortSecTables(data[0].securities);
-            $("span[id='portfolioTotalValue']").html("Total Portfolio Value: " + formatToUSCurrency(calculateTotalPortfolioValue(data[0].securities), 0));
+            $("span[id='portfolioTotalValue']").html("Total Portfolio Value: " + formatToUSCurrency(data[0].portfolioValue, 0));
             $('#spinner').hide();
         })
         .fail(function (jqXHR) {
@@ -119,93 +119,57 @@ function drawPortSecTables(data) {
 
 function drawStockFundRow(rowData) {
     var row = $("<tr />")
-    var quote = loadSecurityBySymbol("'" + rowData.symbol + "'");
-    var purchasePrice = 0;
-    var lastTradePriceOnly = 0;
-    var dividendYield = 0;
-    var gain = 0;
-    var gainPct = 0;
-
     $("#stockFundDataTable").append(row);
-    if (quote) {
 
-        purchasePrice = rowData.purchasePrice;
-        lastTradePriceOnly = quote.LastTradePriceOnly;
-        if (quote.DividendYield)
-            dividendYield = quote.DividendYield;
-        else if (rowData.fundDividend)
-            dividendYield = rowData.fundDividend;
-
-        if (rowData.type === "Stock") {
-            gain = calculateCurrentStockGain(rowData.quantity, lastTradePriceOnly, dividendYield) - (parseFloat(purchasePrice) * parseFloat(rowData.quantity));
-            gainPct = gain / (parseFloat(purchasePrice) * parseFloat(rowData.quantity));
-        }
-        else if (rowData.type === "Fund") {
-            gain = calculateCurrentFundGain(rowData.quantity, lastTradePriceOnly, dividendYield) - (parseFloat(purchasePrice) * parseFloat(rowData.quantity));
-            gainPct = gain / (parseFloat(purchasePrice) * parseFloat(rowData.quantity));
-        }
-
-        // Stock / Fund Information
-        row.append($("<td>" + rowData.symbol + "</td>")); // Symbol
-        row.append($("<td>" + quote.Name + "</td>")); // Name
-        row.append($("<td>" + rowData.type + "</td>"));
-        row.append($("<td>" + formatToUSCurrency(parseFloat(purchasePrice), 2) + "</td>")); // Purchase Price
-        row.append($("<td>" + formatToNumeric(parseInt(rowData.quantity)) + "</td>")); // Quantity
-        row.append($("<td>" + formatToUSCurrency((parseFloat(purchasePrice) * parseFloat(rowData.quantity)), 0) + "</td>")); // Cost
-        row.append($("<td>" + formatToUSCurrency(parseFloat(lastTradePriceOnly), 2) + "</td>")); // Last Trade Price
-        row.append($("<td>" + formatToUSCurrency((parseFloat(lastTradePriceOnly) * parseFloat(rowData.quantity)), 0) + "</td>")); // Market Value
-        row.append($("<td>" + formatToUSCurrency(parseFloat(dividendYield), 2) + "</td>")); // Dividend
-        row.append($("<td>" + formatToUSCurrency(gain, 0) + "</td>")); // Gain
-        row.append($("<td>" + formatToPercent(gainPct, 2) + "</td>")); // Gain %
-    }
-    else {
-        // Stock / Fund Information
-        row.append($("<td>" + "N/A" + "</td>")); // Symbol
-        row.append($("<td>" + rowData.name + "</td>")); // Name
-        row.append($("<td>" + rowData.type + "</td>")); // Type
-        row.append($("<td>" + "N/A" + "</td>")); // Purchase Price
-        row.append($("<td>" + "N/A" + "</td>")); // Quantity
-        row.append($("<td>" + "N/A" + "</td>")); // Cost
-        row.append($("<td>" + "N/A" + "</td>")); // Last Trade Price
-        row.append($("<td>" + "N/A" + "</td>")); // Market Value
-        row.append($("<td>" + "N/A" + "</td>")); // Gain
-        row.append($("<td>" + "N/A" + "</td>")); // Gain %
-    }
+    // Stock / Fund Information
+    row.append($("<td>" + rowData.symbol + "</td>")); // Symbol
+    row.append($("<td>" + rowData.name + "</td>")); // Name
+    row.append($("<td>" + rowData.securityType + "</td>"));
+    row.append($("<td>" + formatToUSCurrency(rowData.purchasePrice, 2) + "</td>")); // Purchase Price
+    row.append($("<td>" + formatToNumeric(rowData.quantity) + "</td>")); // Quantity
+    row.append($("<td>" + formatToUSCurrency(rowData.cost, 0) + "</td>")); // Cost
+    row.append($("<td>" + formatToUSCurrency(rowData.currentPrice, 2) + "</td>")); // Last Trade Price
+    row.append($("<td>" + formatToUSCurrency(rowData.marketValue, 0) + "</td>")); // Market Value
+    row.append($("<td>" + formatToUSCurrency(rowData.dividend, 2) + "</td>")); // Dividend
+    row.append($("<td>" + formatToUSCurrency(rowData.currentValue, 0) + "</td>")); // Current Value
+    row.append($("<td>" + formatToUSCurrency(rowData.gain, 0) + "</td>")); // Gain
+    row.append($("<td>" + formatToPercent(rowData.percentageGain, 2) + "</td>")); // Gain %
 }
 
 function drawBondRow(rowData)
 {
     var row = $("<tr />")
-    var quote = loadSecurityBySymbol("'" + rowData.symbol + "'");
     $("#bondDataTable").append(row);
 
     // Bond Information
     row.append($("<td>" + rowData.name + "</td>")); // Name
-    row.append($("<td>" + rowData.type + "</td>")); // Type
+    row.append($("<td>" + rowData.securityType + "</td>")); // Type
     row.append($("<td>" + formatToUSCurrency(rowData.faceValue, 0) + "</td>")); // Face Value
     row.append($("<td>" + formatToPercent(rowData.bondInterestRate, 0) + "</td>")); // Coupon Rate
     row.append($("<td>" + formatDateMMDDYYYY(rowData.purchaseDate) + "</td>")); // Purchase Date
     row.append($("<td>" + formatDateMMDDYYYY(rowData.maturityDate) + "</td>")); // Maturity Date
     row.append($("<td>" + rowData.numberOfPeriods + "</td>")); // Years to Maturity
     row.append($("<td>" + formatToPercent(rowData.marketInterestRate, 2) + "</td>")); // Required Return
-    row.append($("<td>" + formatToUSCurrency(calculateCurrentBondPrice(rowData.faceValue, rowData.bondInterestRate, rowData.marketInterestRate, rowData.numberOfPeriods), 0) + "</td>")); // Bond Price
+    row.append($("<td>" + formatToUSCurrency(rowData.currentBondPrice, 0) + "</td>")); // Bond Price
 }
 
 function drawSecDetailRow(rowData) {
     var row = $("<tr />")
     $("#securityDataTable").find("tr:gt(0)").remove();
     $("#securityDataTable").append(row);
+
+    // Stock / Fund Quote Information
     row.append($("<td>" + rowData.Name + "</td>"));
     row.append($("<td>" + rowData.Symbol + "</td>"));
     row.append($("<td>" + rowData.StockExchange + "</td>"));
-    row.append($("<td>" + formatToUSCurrency(parseFloat(rowData.Open), 2) + "</td>"));
-    row.append($("<td>" + formatToUSCurrency(parseFloat(rowData.PreviousClose), 2) + "</td>"));
-    row.append($("<td>" + formatToUSCurrency(parseFloat(rowData.LastTradePriceOnly), 2) + "</td>"));
-    row.append($("<td>" + formatToUSCurrency(parseFloat(rowData.DividendYield), 2) + "</td>"));
-    row.append($("<td>" + formatToUSCurrency(parseFloat(rowData.DaysLow), 2) + "</td>"));
-    row.append($("<td>" + formatToUSCurrency(parseFloat(rowData.DaysHigh), 2) + "</td>"));
-    row.append($("<td>" + formatToUSCurrency(parseFloat(rowData.YearLow), 2) + "</td>"));
-    row.append($("<td>" + formatToUSCurrency(parseFloat(rowData.YearHigh), 2) + "</td>"));
+    row.append($("<td>" + formatToUSCurrency(rowData.Open, 2) + "</td>"));
+    row.append($("<td>" + formatToUSCurrency(rowData.PreviousClose, 2) + "</td>"));
+    row.append($("<td>" + formatToUSCurrency(rowData.LastTradePriceOnly, 2) + "</td>"));
+    row.append($("<td>" + formatToUSCurrency(rowData.DividendYield, 2) + "</td>"));
+    row.append($("<td>" + formatToUSCurrency(rowData.DaysLow, 2) + "</td>"));
+    row.append($("<td>" + formatToUSCurrency(rowData.DaysHigh, 2) + "</td>"));
+    row.append($("<td>" + formatToUSCurrency(rowData.YearLow, 2) + "</td>"));
+    row.append($("<td>" + formatToUSCurrency(rowData.YearHigh, 2) + "</td>"));
 }
 
 function calculateCurrentStockGain(quantity, currentPrice, stockDividend) {
@@ -291,10 +255,10 @@ function calculateTotalPortfolioValue(data) {
             else if (data[i].fundDividend)
                 dividendYield = data[i].fundDividend;
 
-            if (data[i].type === "Stock") {
+            if (data[i].securityType === "Stock") {
                 gain = calculateCurrentStockGain(data[i].quantity, lastTradePriceOnly, dividendYield) - (parseFloat(purchasePrice) * parseFloat(data[i].quantity));
             }
-            else if (data[i].type === "Fund") {
+            else if (data[i].securityType === "Fund") {
                 gain = calculateCurrentFundGain(data[i].quantity, lastTradePriceOnly, dividendYield) - (parseFloat(purchasePrice) * parseFloat(data[i].quantity));
             }
 

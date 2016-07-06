@@ -1,27 +1,20 @@
 ﻿using System;
-using System.Text;
-using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PortfolioViewer.Controllers;
-using System.Web;
-using System.Net.Http;
-using System.Threading.Tasks;
+using PortfolioViewer.Models;
 
 namespace PortfolioViewer.Tests
 {
     /// <summary>
-    /// Summary description for FuncControllerTest
+    /// Summary description for SecuritiesTest
     /// </summary>
     [TestClass]
-    public class FuncControllerTest
+    public class SecuritiesTest
     {
-        public FuncControllerTest()
+        public SecuritiesTest()
         {
-            controller = new FuncController();
         }
 
         private TestContext testContextInstance;
-        private FuncController controller;
 
         /// <summary>
         ///Gets or sets the test context which provides
@@ -61,39 +54,56 @@ namespace PortfolioViewer.Tests
         //
         #endregion
 
+
+
         [TestMethod]
-        public void CalculateCurrentStockGain()
+        public void CalculateCurrentStockValue()
         {
-            int quantity = 10;
-            double currentPrice = 1;
-            double stockDividend = .5;
+            StockModel stockModel = new StockModel()
+            {
+                Id = 1,
+                Symbol = "AAPL",
+                PurchaseDate = DateTime.UtcNow,
+                Quantity = 10
 
-            double value = controller.CalculateCurrentStockGain(quantity, currentPrice, stockDividend);
+            };
 
-            Assert.AreEqual(15, value);
+            stockModel.PurchasePrice = stockModel.CurrentPrice;
+
+            Assert.AreEqual(stockModel.Cost + ((stockModel.Dividend / stockModel.CurrentPrice) * stockModel.Quantity), stockModel.CurrentValue);
         }
 
         [TestMethod]
-        public void CalculateCurrentFundGain()
+        public void CalculateCurrentFundValue()
         {
-            int quantity = 10;
-            double currentPrice = 1;
-            double fundDividend = .5;
+            FundModel fundModel = new FundModel()
+            {
+                Id = 1,
+                Symbol = "VFSTX",
+                PurchaseDate = DateTime.UtcNow,
+                Quantity = 10,
+                Dividend = .5
 
-            double value = controller.CalculateCurrentFundGain(quantity, currentPrice, fundDividend);
+            };
 
-            Assert.AreEqual(30, value);
+            fundModel.PurchasePrice = fundModel.CurrentPrice;
+
+            Assert.AreEqual(fundModel.Cost + ((fundModel.Dividend / fundModel.CurrentPrice) * 4 * fundModel.Quantity), fundModel.CurrentValue);
         }
 
         [TestMethod]
         public void CalculateCurrentBondPrice()
         {
-            double faceValue = 100;
-            double bondInterestRate = .5;
-            double marketInterestRate = .2;
-            double numberOfPeriods = 1;
+            BondModel bondModel = new BondModel()
+            {
+                FaceValue = 100,
+                BondInterestRate = .5,
+                MarketInterestRate = .2,
+                PurchaseDate = DateTime.UtcNow,
+                MaturityDate = DateTime.UtcNow.AddYears(1)
+            };
 
-            double value = controller.CalculateCurrentBondPrice(faceValue, bondInterestRate, marketInterestRate, numberOfPeriods);
+            double value = bondModel.CurrentBondPrice;
 
             Assert.AreEqual(125, value);
         }

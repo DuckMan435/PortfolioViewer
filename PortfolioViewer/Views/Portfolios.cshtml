@@ -21,6 +21,7 @@
                 <th>Last Trade Price</th>
                 <th>Market Value</th>
                 <th>Dividend Yield</th>
+                <th>Current Value</th>
                 <th>Gain</th>
                 <th>Gain %</th>
             </tr>
@@ -51,8 +52,8 @@
 
     <div class="panel panel-info">
         <div class="panel-heading">Calculation Explanations</div>
-        <span class="text-info"><b>Stock Gain:</b> (Quantity * Last Trade Price) + ((Dividend Yield / Last Trade Price) * Quantity) [Yearly Dividend]</span><br />
-        <span class="text-info"><b>Fund Gain:</b> (Quantity * Last Trade Price) + ((Dividend Yield / Last Trade Price) * 4 * Quantity) [Quarterly Dividend]</span><br />
+        <span class="text-info"><b>Stock Current Value:</b> (Quantity * Last Trade Price) + ((Dividend Yield / Last Trade Price) * Quantity) [Yearly Dividend]</span><br />
+        <span class="text-info"><b>Fund Current Value:</b> (Quantity * Last Trade Price) + ((Dividend Yield / Last Trade Price) * 4 * Quantity) [Quarterly Dividend]</span><br />
         <span class="text-info"><b>Bond Price:</b> ((Face Value / (1 + Required Return) ^ Years to Maturity) + (Coupon Rate x Face Value x ((1 - (1 + Required Return) ^ -Years to Maturity)) / Required Return)</span>
     </div>
 </div>
