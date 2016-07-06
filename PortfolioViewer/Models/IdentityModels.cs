@@ -89,12 +89,14 @@ namespace PortfolioViewer.Models
                 {
                     var newUser = new ApplicationUser()
                     {
-                        UserName = "Client 1",
+                        UserName = "Client1",
                         Email = "user@client1.com"
                     };
                     userManager.Create(newUser, "Password1!");
                     userManager.SetLockoutEnabled(newUser.Id, false);
                     userManager.AddToRole(newUser.Id, "User");
+                    newUser.UserName = "Client 1";
+                    db.SaveChanges();
                 }
 
                 user = userManager.FindByName("Client 2");
@@ -102,12 +104,14 @@ namespace PortfolioViewer.Models
                 {
                     var newUser = new ApplicationUser()
                     {
-                        UserName = "Client 2",
+                        UserName = "Client2",
                         Email = "user@client2.com"
                     };
                     userManager.Create(newUser, "Password1!");
                     userManager.SetLockoutEnabled(newUser.Id, false);
                     userManager.AddToRole(newUser.Id, "User");
+                    newUser.UserName = "Client 2";
+                    db.SaveChanges();
                 }
 
                 user = userManager.FindByName("Client 3");
@@ -115,12 +119,14 @@ namespace PortfolioViewer.Models
                 {
                     var newUser = new ApplicationUser()
                     {
-                        UserName = "Client 3",
+                        UserName = "Client3",
                         Email = "user@client3.com"
                     };
                     userManager.Create(newUser, "Password1!");
                     userManager.SetLockoutEnabled(newUser.Id, false);
                     userManager.AddToRole(newUser.Id, "User");
+                    newUser.UserName = "Client 3";
+                    db.SaveChanges();
                 }
             }
         }
