@@ -60,6 +60,8 @@
 <div>
     <h4>Get Quote for Stocks/Funds by Symbol</h4>
     <input type="text" id="securitySym" size="4" />
-    <input type="button" class="btn btn-default" value="Search" onclick="loadSecurity();" />
-    <span id="symbolError" class="label label-danger"></span>
+    <input type="button" id="btnQuote" class="btn btn-default" value="Search" onclick="loadSecurity();" />
+    <div id="divSymbolError" class="has-error danger" style="display:none">
+        <span id="symbolError" class="has-error label label-danger"></span>
+    </div>
 </div>

@@ -114,7 +114,7 @@ namespace PortfolioViewer.Tests
 
             var repo = new Repository(mockContext.Object);
             var controller = new PortfoliosController(repo);
-            var portfolios = controller.Get();
+            var portfolios = (IQueryable<PortfolioModel>)controller.Get().Content;
 
             Assert.AreEqual(3, portfolios.Count());
         }

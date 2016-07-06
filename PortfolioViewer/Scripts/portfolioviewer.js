@@ -55,7 +55,11 @@ function loadPortfolio() {
             $('#spinner').hide();
         })
         .fail(function (jqXHR) {
-            console.log(jqXHR.status + ': ' + jqXHR.statusText);
+            console.log(jqXHR.status + ': ' + jqXHR.statusText + ' - ' + jqXHR.responseJSON.message);
+            $("#divError").fadeIn("slow");
+            $("span[id='error']").html("Portfolio API Error: " + "Status (" + jqXHR.status + " " + jqXHR.statusText + ") - " + jqXHR.responseJSON.message);
+            $('#spinner').hide();
+            $("#divError").fadeOut(5000);
         });
     }
 }
@@ -65,6 +69,7 @@ function loadSecurity() {
     var url = 'http://query.yahooapis.com/v1/public/yql?q=select * from yahoo.finance.quotes where symbol in (' + symbol +
               ')&env=store://datatables.org/alltableswithkeys&format=json';
     $('#spinner').show();
+    $("#btnQuote").prop('disabled', true);
     $.ajax({
         type: 'GET',
         url: url,
@@ -73,37 +78,24 @@ function loadSecurity() {
             drawSecDetailRow(data.query.results.quote);
             $("span[id='symbolError']").html('');
             $("#divSecurity").show();
+            $("#btnQuote").prop('disabled', false);
         }
         else {
+            $("#divSymbolError").fadeIn();
             $("span[id='symbolError']").html('Failed to load quote for Symbol: ' + symbol);
+            $("#divSymbolError").fadeOut(5000);
+            $("#btnQuote").prop('disabled', false);
         }
 
         $('#spinner').hide();
     })
     .fail(function (jqXHR) {
+        $("#divSymbolError").fadeIn();
         console.log(jqXHR.status + ': ' + jqXHR.statusText);
         $("span[id='symbolError']").html('Failed to Load Symbol:' + symbol.replace("'"));
+        $("#divSymbolError").fadeOut(5000);
+        $("#btnQuote").prop('disabled', false);
     });
-}
-
-function loadSecurityBySymbol(symbol) {
-    var url = 'http://query.yahooapis.com/v1/public/yql?q=select * from yahoo.finance.quotes where symbol in (' + symbol +
-              ')&env=store://datatables.org/alltableswithkeys&format=json';
-    var quote;
-    $.ajax({
-        type: 'GET',
-        url: url,
-        async: false
-    }).done(function (data) {
-        if (data.query.results && data.query.results.quote.Name) {
-            quote = data.query.results.quote;
-        }
-    })
-    .fail(function (jqXHR) {
-        console.log(jqXHR.status + ': ' + jqXHR.statusText);
-    });
-
-    return quote;
 }
 
 function drawPortSecTables(data) {
@@ -170,106 +162,6 @@ function drawSecDetailRow(rowData) {
     row.append($("<td>" + formatToUSCurrency(rowData.DaysHigh, 2) + "</td>"));
     row.append($("<td>" + formatToUSCurrency(rowData.YearLow, 2) + "</td>"));
     row.append($("<td>" + formatToUSCurrency(rowData.YearHigh, 2) + "</td>"));
-}
-
-function calculateCurrentStockGain(quantity, currentPrice, stockDividend) {
-    var pathArray = location.href.split('/');
-    var protocol = pathArray[0];
-    var host = pathArray[2];
-    var url = protocol + '//' + host + '/api/func?quantity=' + quantity + '&currentPrice=' + currentPrice + '&stockDividend=' + stockDividend;
-    var stockValue;
-
-    $.ajax({
-        type: 'GET',
-        url: url,
-        async: false
-    }).done(function (data) {
-        stockValue = data;
-    })
-    .fail(function (jqXHR) {
-        console.log(jqXHR.status + ': ' + jqXHR.statusText);
-    });
-
-    return stockValue;
-}
-
-function calculateCurrentFundGain(quantity, currentPrice, fundDividend) {
-    var pathArray = location.href.split('/');
-    var protocol = pathArray[0];
-    var host = pathArray[2];
-    var url = protocol + '//' + host + '/api/func?quantity=' + quantity + '&currentPrice=' + currentPrice + '&fundDividend=' + fundDividend;
-    var fundValue;
-
-    $.ajax({
-        type: 'GET',
-        url: url,
-        async: false
-    }).done(function (data) {
-        fundValue = data;
-    })
-    .fail(function (jqXHR) {
-        console.log(jqXHR.status + ': ' + jqXHR.statusText);
-    });
-
-    return fundValue;
-}
-
-function calculateCurrentBondPrice(faceValue, bondInterestRate, marketInterestRate, numberOfPeriods) {
-    var pathArray = location.href.split('/');
-    var protocol = pathArray[0];
-    var host = pathArray[2];
-    var url = protocol + '//' + host + '/api/func?faceValue=' + faceValue + '&bondInterestRate=' + bondInterestRate + '&marketInterestRate=' + marketInterestRate + '&numberOfPeriods=' + numberOfPeriods;
-    var headers = {};
-    var bondValue;
-
-    $.ajax({
-        type: 'GET',
-        url: url,
-        async: false
-    }).done(function (data) {
-        bondValue = data;
-    })
-    .fail(function (jqXHR) {
-        console.log(jqXHR.status + ': ' + jqXHR.statusText);
-    });
-
-    return bondValue;
-}
-
-function calculateTotalPortfolioValue(data) {
-    var marketValue = 0;
-    var bondPrice = 0;
-
-    for (var i = 0; i < data.length; i++) {
-        if (data[i].symbol) {
-            var quote = loadSecurityBySymbol("'" + data[i].symbol + "'");
-            var purchasePrice = 0;
-            var lastTradePriceOnly = 0;
-            var dividendYield = 0;
-            var gain = 0;
-
-            purchasePrice = data[i].purchasePrice;
-            lastTradePriceOnly = quote.LastTradePriceOnly;
-            if (quote.DividendYield)
-                dividendYield = quote.DividendYield;
-            else if (data[i].fundDividend)
-                dividendYield = data[i].fundDividend;
-
-            if (data[i].securityType === "Stock") {
-                gain = calculateCurrentStockGain(data[i].quantity, lastTradePriceOnly, dividendYield) - (parseFloat(purchasePrice) * parseFloat(data[i].quantity));
-            }
-            else if (data[i].securityType === "Fund") {
-                gain = calculateCurrentFundGain(data[i].quantity, lastTradePriceOnly, dividendYield) - (parseFloat(purchasePrice) * parseFloat(data[i].quantity));
-            }
-
-            marketValue += (parseFloat(purchasePrice) * parseFloat(data[i].quantity)) + gain;
-        }
-        else {
-            bondPrice += calculateCurrentBondPrice(data[i].faceValue, data[i].bondInterestRate, data[i].marketInterestRate, data[i].numberOfPeriods)
-        }
-    }
-
-    return marketValue + bondPrice;
 }
 
 function formatToUSCurrency(value, decimal) {
