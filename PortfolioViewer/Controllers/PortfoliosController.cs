@@ -1,4 +1,5 @@
-﻿using PortfolioViewer.Models;
+﻿using Elmah.Contrib.WebApi;
+using PortfolioViewer.Models;
 using System;
 using System.Linq;
 using System.Net;
@@ -33,7 +34,9 @@ namespace PortfolioViewer.Controllers
             }
             catch(Exception ex)
             {
-                //TODO: Error Logging
+                // Log actual Exception
+                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                // Return User Friendly Error
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Failed to load Portfolios with Securities");
             }
         }

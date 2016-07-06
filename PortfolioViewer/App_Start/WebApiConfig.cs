@@ -8,6 +8,8 @@ using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using System.Web.Helpers;
 using System.Net.Http.Formatting;
+using System.Web.Http.ExceptionHandling;
+using Elmah.Contrib.WebApi;
 
 namespace PortfolioViewer
 {
@@ -19,6 +21,8 @@ namespace PortfolioViewer
             // Configure Web API to use only bearer token authentication.
             config.SuppressDefaultHostAuthentication();
             config.Filters.Add(new HostAuthenticationFilter(OAuthDefaults.AuthenticationType));
+
+            config.Services.Add(typeof(IExceptionLogger), new ElmahExceptionLogger());
 
             // Web API routes
             config.MapHttpAttributeRoutes();

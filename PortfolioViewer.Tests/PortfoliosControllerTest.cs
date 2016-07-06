@@ -7,6 +7,8 @@ using PortfolioViewer.Models;
 using System.Linq;
 using Moq;
 using System.Data.Entity;
+using System.Web.Http;
+using System.Net.Http;
 
 namespace PortfolioViewer.Tests
 {
@@ -114,8 +116,12 @@ namespace PortfolioViewer.Tests
 
             var repo = new Repository(mockContext.Object);
             var controller = new PortfoliosController(repo);
-            var portfolios = (IQueryable<PortfolioModel>)controller.Get().Content;
+            controller.Request = new HttpRequestMessage();
+            controller.Configuration = new HttpConfiguration();
+            var response = controller.Get();
+            IQueryable<PortfolioModel> portfolios;
 
+            Assert.IsTrue(response.TryGetContentValue(out portfolios));
             Assert.AreEqual(3, portfolios.Count());
         }
     }
